@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -euo pipefail
+set -exuo pipefail
 
 # Getting started
 
@@ -8,7 +8,6 @@ set -euo pipefail
 loadkeys fr-latin1
 
 ## Internet
-iwctl station wlan0 get-networks
 iwctl station wlan0 connect $SSID --passphrase $WIFI_PASSPHRASE
 timedatectl
 
@@ -16,16 +15,19 @@ timedatectl
 
 ## Partitioning https://wiki.archlinux.org/title/Installation_guide#Partition_the_disks
 # Delete /dev/sda1, /dev/sda2, /dev/sda3, /dev/sda4
-ls /dev/sda* | grep -E '/dev/sda[0-9]+' | grep -o '[0-9]' | xargs -t -I {} bash -c "printf 'd\n{}\nw\n' | fdisk /dev/sda"
+partitions=$(ls /dev/sda* | grep -o '[0-9]' || true)
+printf "%s" "$partitions" | xargs -t -I {} bash -c "printf 'd\n{}\nw\n' | fdisk /dev/sda"
+
 
 ## Boot partition
-printf 'g\nn\n\n+300m\ny\nt\n1\nw\n' | fdisk /dev/sda
+printf 'g\nn\n\n\n+300m\ny\nt\n1\nw\n' | fdisk /dev/sda
+
 
 ## Swap partition
-printf 'n\n\n\n+4g\n\n\nw\n' | fdisk /dev/sda
+printf 'n\n\n\n+4g\ny\nt\n2\nswap\nw\n' | fdisk /dev/sda
 
 ## Root partition
-printf 'n\n\n\n\nw\n' | fdisk /dev/sda
+printf 'n\n\n\n\nY\nw\n' | fdisk /dev/sda
 
 
 ## Format partitions https://wiki.archlinux.org/title/Installation_guide#Format_the_partitions
@@ -33,6 +35,8 @@ mkfs.ext4 /dev/sda3
 mkswap /dev/sda2
 mkfs.fat -F 32 /dev/sda1
 
+
+mount /dev/sda3 /mnt
 mount --mkdir /dev/sda1 /mnt/boot
 swapon /dev/sda2
 
