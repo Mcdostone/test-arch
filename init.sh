@@ -38,7 +38,7 @@ swapon /dev/sda2
 
 
 ## Format partitions https://wiki.archlinux.org/title/Installation_guide#Install_essential_packages
-pacstrap -K /mnt base linux linux-firmware iwd curl iputils vim dhcpcd sudo
+pacstrap -K /mnt base linux linux-firmware iwd curl iputils vim dhcpcd sudo base-devel git
 
 genfstab -U /mnt >> /mnt/etc/fstab
 
